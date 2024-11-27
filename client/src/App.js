@@ -45,7 +45,7 @@ function App() {
 
     try {
       logger.log('Sending file to server for analysis');
-      const response = await axios.post('http://localhost:5001/api/analyze-contract', formData, {
+      const response = await axios.post('http://localhost:4000/api/analyze-contract', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

@@ -112,7 +112,7 @@ app.post('/api/analyze-contract', upload.single('pdf'), async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   logger.log(`Server running on port ${PORT}`);
 });
