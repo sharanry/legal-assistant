@@ -7,6 +7,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import dotenv from 'dotenv';
+import path from 'path';
 import logger from './utils/logger.js';
 import { JsonOutputParser } from '@langchain/core/output_parsers';
 dotenv.config();
@@ -31,8 +32,17 @@ const openai = new OpenAI({
   apiKey: process.env.OPENROUTER_KEY,
 });
 
+// Serve the static files from the React app
+app.use(express.static(path.join(__dirname, '../client/build')));
+app.use(express.static(path.join(__dirname, '../client/public')));
+
 app.get('/api/health', (req, res) => {
-  res.send('OK');
+    res.send('OK');
+  });
+
+// Handle requests by serving index.html for all routes
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
 });
 
 app.post('/api/analyze-contract', upload.single('pdf'), async (req, res) => {
