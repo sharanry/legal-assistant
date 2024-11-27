@@ -28,26 +28,20 @@ const PdfViewer = ({ file, searchKeyword }) => {
   const [pdfUrl, setPdfUrl] = React.useState(null);
 
   React.useEffect(() => {
-    let url = null;
     if (file instanceof Blob) {
-      url = URL.createObjectURL(file);
+      const url = URL.createObjectURL(file);
       setPdfUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPdfUrl(null);
     }
-    
-    return () => {
-      if (url) {
-        URL.revokeObjectURL(url);
-      }
-    };
   }, [file]);
 
   React.useEffect(() => {
     if (searchKeyword && searchPluginInstance.search) {
-      const timeoutId = setTimeout(() => {
+      setTimeout(() => {
         searchPluginInstance.search(searchKeyword);
       }, 500);
-      
-      return () => clearTimeout(timeoutId);
     }
   }, [searchKeyword, searchPluginInstance]);
 
