@@ -31,6 +31,10 @@ const openai = new OpenAI({
   apiKey: process.env.OPENROUTER_KEY,
 });
 
+app.get('/api/health', (req, res) => {
+  res.send('OK');
+});
+
 app.post('/api/analyze-contract', upload.single('pdf'), async (req, res) => {
   try {
     logger.log('Received contract analysis request');
