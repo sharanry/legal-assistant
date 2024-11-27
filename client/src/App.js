@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Container,
-  Typography,
   CircularProgress,
   Box,
   Grid,
@@ -19,7 +17,6 @@ import Header from './components/Header';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import axios from 'axios';
 import logger from './utils/logger';
-import ReplayIcon from '@mui/icons-material/Replay';
 
 function App() {
   const [loading, setLoading] = useState(false);
