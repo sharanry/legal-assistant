@@ -1,5 +1,7 @@
 .App {
-  text-align: center;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding: 20px 0;
 }
 
 .App-logo {
@@ -14,14 +16,10 @@
 }
 
 .App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .App-link {
@@ -35,4 +33,89 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* PDF viewer container styles */
+.rpv-core__viewer {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  height: 100%;
+}
+
+/* Table container styles */
+.MuiTableContainer-root {
+  max-height: 100%;
+}
+
+/* Table link styles */
+.MuiLink-root {
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.MuiLink-root:hover {
+  color: #1565c0;
+}
+
+/* Issue severity styles */
+.severity-high {
+  color: #d32f2f;
+}
+
+.severity-medium {
+  color: #ed6c02;
+}
+
+.severity-low {
+  color: #0288d1;
+}
+
+/* Expandable row styles */
+.MuiTableRow-root.expanded {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.contract-header {
+  background: linear-gradient(to right, #1976d2, #2196f3);
+  color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.contract-metadata {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+
+.history-drawer {
+  background-color: #f8f9fa;
+}
+
+.selected-contract {
+  background-color: rgba(25, 118, 210, 0.08);
+}
+
+.upload-zone {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 3rem;
+  text-align: center;
+}
+
+/* Header styles */
+.app-header {
+  background: linear-gradient(45deg, #1a237e 30%, #283593 90%);
+  transition: all 0.3s ease;
+}
+
+.app-header:hover {
+  background: linear-gradient(45deg, #283593 30%, #1a237e 90%);
+}
+
+.app-title {
+  font-family: 'Playfair Display', serif;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
