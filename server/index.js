@@ -16,7 +16,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024 // Limit file size to 10MB
+  }
+});
 
 app.use(cors());
 app.use(express.json());
@@ -34,7 +39,7 @@ const openai = new OpenAI({
 
 // Serve the static files from the React app
 app.use(express.static(path.join(__dirname, '../client/build')));
-app.use(express.static(path.join(__dirname, '../client/public')));
+// app.use(express.static(path.join(__dirname, '../client/public')));
 
 app.get('/api/health', (req, res) => {
     res.send('OK');
@@ -55,8 +60,7 @@ app.post('/api/analyze-contract', upload.single('pdf'), async (req, res) => {
     }
 
     logger.log(`Processing file: ${req.file.originalname}`);
-    const dataBuffer = await fs.promises.readFile(req.file.path);
-    const pdfData = await pdf(dataBuffer);
+    const pdfData = await pdf(req.file.buffer);
     
     logger.log('Sending request to OpenRouter API');
     const response = await openai.chat.completions.create({
@@ -115,14 +119,6 @@ app.post('/api/analyze-contract', upload.single('pdf'), async (req, res) => {
   } catch (error) {
     logger.error('Error analyzing contract', error);
     res.status(500).json({ error: 'Failed to analyze contract' });
-  } finally {
-    // Clean up uploaded file
-    if (req.file) {
-      fs.unlink(req.file.path, (err) => {
-        if (err) logger.error('Error deleting temporary file', err);
-        else logger.log('Temporary file cleaned up');
-      });
-    }
   }
 });
 
