@@ -16,7 +16,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ 
+  dest: process.env.NODE_ENV === 'production' ? '/tmp' : 'uploads/' 
+});
 
 app.use(cors());
 app.use(express.json());
@@ -41,7 +43,10 @@ app.get('/api/health', (req, res) => {
 
 // Handle requests by serving index.html for all routes
 app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+  // Only serve index.html for non-API routes
+  if (!req.path.startsWith('/api/')) {
+    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+  }
 });
 
 app.post('/api/analyze-contract', upload.single('pdf'), async (req, res) => {
@@ -125,7 +130,7 @@ app.post('/api/analyze-contract', upload.single('pdf'), async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   logger.log(`Server running on port ${PORT}`);
 });

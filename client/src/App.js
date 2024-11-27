@@ -18,6 +18,8 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import axios from 'axios';
 import logger from './utils/logger';
 
+const BACKEND_BASE_URL = process.env.BACKEND_BASE_URL || 'http://localhost:5001';
+
 function App() {
   const [loading, setLoading] = useState(false);
   const [showUpload, setShowUpload] = useState(true);
@@ -42,7 +44,7 @@ function App() {
 
     try {
       logger.log('Sending file to server for analysis');
-      const response = await axios.post('/api/analyze-contract', formData, {
+      const response = await axios.post(`${BACKEND_BASE_URL}/api/analyze-contract`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
