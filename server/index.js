@@ -38,7 +38,7 @@ const openai = new OpenAI({
 });
 
 // Serve the static files from the React app
-app.use(express.static(path.join(__dirname, '../client/dist')));
+app.use(express.static(path.join(__dirname, '../client/build')));
 
 app.get('/api/health', (req, res) => {
     res.send('OK');
@@ -46,7 +46,7 @@ app.get('/api/health', (req, res) => {
 
 // Handle requests by serving index.html for all routes
 app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
+        res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
 });
 
 app.post('/api/analyze-contract', upload.single('pdf'), async (req, res) => {
