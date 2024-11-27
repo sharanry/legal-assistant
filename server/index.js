@@ -43,7 +43,6 @@ app.post('/api/analyze-contract', upload.single('pdf'), async (req, res) => {
     logger.log(`Processing file: ${req.file.originalname}`);
     const dataBuffer = await fs.promises.readFile(req.file.path);
     const pdfData = await pdf(dataBuffer);
-    // logger.log("pdfData.text", pdfData.text);
     
     logger.log('Sending request to OpenRouter API');
     const response = await openai.chat.completions.create({
@@ -84,8 +83,17 @@ app.post('/api/analyze-contract', upload.single('pdf'), async (req, res) => {
     });
 
     // Parse the JSON response
-    const parser = new JsonOutputParser();
-    const analysis = await parser.parse(response.choices[0].message.content);
+    let analysis;
+    try {
+      const parser = new JsonOutputParser();
+      analysis = await parser.parse(response.choices[0].message.content);
+    } catch (err) {
+      logger.error('Failed to parse AI response', err);
+      return res.status(500).json({ 
+        error: 'Failed to parse contract analysis results',
+        details: err.message
+      });
+    }
     
     logger.log(`Successfully analyzed contract with ${analysis.clauses.length} clauses`);
     res.json(analysis);
