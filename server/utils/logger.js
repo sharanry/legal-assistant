@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const logDir = path.join(__dirname, '../logs');
+const logDir = process.env.NODE_ENV === 'production' ? '/tmp' : path.join(__dirname, '../logs');
 
 // Ensure logs directory exists
 if (!fs.existsSync(logDir)) {
