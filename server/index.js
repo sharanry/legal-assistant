@@ -23,6 +23,18 @@ const upload = multer({
 app.use(cors());
 app.use(express.json());
 
+// whitelist frontend origin
+const whitelist = ['http://localhost:3000', process.env.FRONTEND_URL];
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+};
+
 // Request logging middleware
 app.use((req, res, next) => {
   logger.request(req);
@@ -31,23 +43,12 @@ app.use((req, res, next) => {
 
 const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: process.env.OPENROUTER_KEY,
 });
-
-// Serve the static files from the React app
-app.use(express.static(path.join(__dirname, '../client/build')));
 
 app.get('/api/health', (req, res) => {
     res.send('OK');
   });
 
-// Handle requests by serving index.html for all routes
-app.get('*', (req, res) => {
-  // Only serve index.html for non-API routes
-  if (!req.path.startsWith('/api/')) {
-    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
-  }
-});
 
 app.post('/api/analyze-contract', upload.single('pdf'), async (req, res) => {
   try {
