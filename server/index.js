@@ -79,21 +79,6 @@ app.post('/api/analyze-contract', upload.single('pdf'), async (req, res) => {
     "effectiveDate": "contract effective date if mentioned",
     "contractValue": "contract value if mentioned"
     },
-    "clauses": [
-    {
-        "type": "clause type",
-        "title": "clause title",
-        "summary": "brief summary",
-        "location": "section number or page",
-        "potentialIssues": [
-        {
-            "severity": "high|medium|low",
-            "description": "description of the potential issue",
-            "recommendation": "recommended action or improvement"
-        }
-        ]
-    }
-    ],
     "criticalClauses": {
         "indemnification": {
             "present": boolean,
@@ -134,7 +119,22 @@ app.post('/api/analyze-contract', upload.single('pdf'), async (req, res) => {
             }
             ]
         }
-    }
+    },
+    "clauses": [
+      {
+          "type": "clause type",
+          "title": "clause title",
+          "summary": "brief summary",
+          "location": "section number or page",
+          "potentialIssues": [
+          {
+              "severity": "high|medium|low",
+              "description": "description of the potential issue",
+              "recommendation": "recommended action or improvement"
+          }
+          ]
+      }
+    ]
 }
 
 Pay special attention to Indemnification, Termination, and Liability clauses. These MUST be included in the analysis if they are present in the contract.
