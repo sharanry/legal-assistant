@@ -10,6 +10,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import logger from './utils/logger.js';
 import { JsonOutputParser } from '@langchain/core/output_parsers';
+import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -17,7 +18,7 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const upload = multer({ 
-  dest: process.env.NODE_ENV === 'production' ? '/tmp' : 'uploads/' 
+  dest: '/tmp',
 });
 
 app.use(cors());
@@ -59,45 +60,58 @@ app.post('/api/analyze-contract', upload.single('pdf'), async (req, res) => {
       return res.status(400).json({ error: 'No PDF file uploaded' });
     }
 
+    logger.log(`PDF file path: ${req.file.path}`);
+
     logger.log(`Processing file: ${req.file.originalname}`);
-    const dataBuffer = await fs.promises.readFile(req.file.path);
-    const pdfData = await pdf(dataBuffer);
+    const loader = new PDFLoader(req.file.path, {
+        splitPages: false,
+    });
+    const docs = await loader.load();
+    const pdfData = docs[0].pageContent;
+
+    if (!pdfData) {
+      logger.error('No text extracted from PDF');
+      return res.status(400).json({ error: 'No text extracted from PDF' });
+    }
+
+    const prompt = `Analyze this contract and extract metadata, clauses, and potential issues. Format the response as JSON with the following structure:
+{
+    "metadata": {
+    "contractType": "type of contract (e.g., SaaS Agreement, Service Agreement)",
+    "parties": {
+        "provider": "name of the service provider/vendor",
+        "client": "name of the client/customer"
+    },
+    "effectiveDate": "contract effective date if mentioned",
+    "contractValue": "contract value if mentioned"
+    },
+    "clauses": [
+    {
+        "type": "clause type",
+        "title": "clause title",
+        "summary": "brief summary",
+        "location": "section number or page",
+        "potentialIssues": [
+        {
+            "severity": "high|medium|low",
+            "description": "description of the potential issue",
+            "recommendation": "recommended action or improvement"
+        }
+        ]
+    }
+    ]
+}
+
+Contract text:
+${pdfData}`
     
     logger.log('Sending request to OpenRouter API');
+    logger.log(prompt);
     const response = await openai.chat.completions.create({
       model: "anthropic/claude-3.5-haiku-20241022:beta",
       messages: [{
         role: "user",
-        content: `Analyze this contract and extract metadata, clauses, and potential issues. Format the response as JSON with the following structure:
-        {
-          "metadata": {
-            "contractType": "type of contract (e.g., SaaS Agreement, Service Agreement)",
-            "parties": {
-              "provider": "name of the service provider/vendor",
-              "client": "name of the client/customer"
-            },
-            "effectiveDate": "contract effective date if mentioned",
-            "contractValue": "contract value if mentioned"
-          },
-          "clauses": [
-            {
-              "type": "clause type",
-              "title": "clause title",
-              "summary": "brief summary",
-              "location": "section number or page",
-              "potentialIssues": [
-                {
-                  "severity": "high|medium|low",
-                  "description": "description of the potential issue",
-                  "recommendation": "recommended action or improvement"
-                }
-              ]
-            }
-          ]
-        }
-        
-        Contract text:
-        ${pdfData.text}`
+        content: prompt
       }]
     });
 
