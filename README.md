@@ -6,6 +6,8 @@ Backend: [![Vercel Backend Deployment Status](https://img.shields.io/github/depl
 
 A simple AI-powered legal document analysis tool that helps lawyers and legal professionals efficiently review and analyze contracts and legal documents.
 
+![Screenshot of the app](image.png)
+
 ## ✨ Features
 
 - 📄 PDF document upload and viewing
