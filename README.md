@@ -1,7 +1,8 @@
 # Legal Assistant
 
-[![Vercel Frontend Deployment Status](https://img.shields.io/github/deployments/sharanry/legal-assistant/Production?label=vercel&logo=vercel&logoColor=white)](https://legal-assistant-bay.vercel.app/)
-[![Vercel Backend Deployment Status](https://img.shields.io/github/deployments/sharanry/legal-assistant/Production?label=vercel&logo=vercel&logoColor=white)](./)
+Frontend: [![Vercel Frontend Deployment Status](https://img.shields.io/github/deployments/sharanry/legal-assistant/Production?label=vercel&logo=vercel&logoColor=white)](https://legal-assistant-bay.vercel.app/)
+
+Backend: [![Vercel Backend Deployment Status](https://img.shields.io/github/deployments/sharanry/legal-assistant/Production?label=vercel&logo=vercel&logoColor=white)](./)
 
 A simple AI-powered legal document analysis tool that helps lawyers and legal professionals efficiently review and analyze contracts and legal documents.
 
