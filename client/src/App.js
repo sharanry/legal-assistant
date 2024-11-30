@@ -166,7 +166,30 @@ function App() {
               <Grid item xs={12} md={6}>
                 <Paper sx={{ p: 2, height: 'calc(100vh - 250px)', overflow: 'auto' }}>
                   <ClausesTable 
-                    clauses={selectedContract.clauses} 
+                    clauses={[
+                      // Critical clauses at the top
+                      ...(selectedContract.criticalClauses?.indemnification?.present ? [{
+                        ...selectedContract.criticalClauses.indemnification,
+                        type: 'Indemnification',
+                        isCritical: true
+                      }] : []),
+                      ...(selectedContract.criticalClauses?.termination?.present ? [{
+                        ...selectedContract.criticalClauses.termination,
+                        type: 'Termination',
+                        isCritical: true
+                      }] : []),
+                      ...(selectedContract.criticalClauses?.liability?.present ? [{
+                        ...selectedContract.criticalClauses.liability,
+                        type: 'Liability',
+                        isCritical: true
+                      }] : []),
+                      // Regular clauses (excluding ones that are already shown as critical)
+                      ...selectedContract.clauses.filter(clause => 
+                        !clause.title.toLowerCase().includes('indemnification') &&
+                        !clause.title.toLowerCase().includes('termination') &&
+                        !clause.title.toLowerCase().includes('liability')
+                      )
+                    ]}
                     onClauseClick={handleClauseClick}
                   />
                 </Paper>

@@ -2,19 +2,13 @@ import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
 import OpenAI from 'openai';
-import pdf from 'pdf-parse';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import dotenv from 'dotenv';
-import path from 'path';
 import logger from './utils/logger.js';
 import { JsonOutputParser } from '@langchain/core/output_parsers';
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 const app = express();
 const upload = multer({ 
@@ -74,7 +68,7 @@ app.post('/api/analyze-contract', upload.single('pdf'), async (req, res) => {
       return res.status(400).json({ error: 'No text extracted from PDF' });
     }
 
-    const prompt = `Analyze this contract and extract metadata, clauses, and potential issues. Format the response as JSON with the following structure:
+    const prompt = `Analyze this contract and extract metadata, clauses, and potential issues. Make sure to ALWAYS include Indemnification, Termination, and Liability clauses if they are present in the contract, even if there are other clauses that might seem more important. Format the response as JSON with the following structure:
 {
     "metadata": {
     "contractType": "type of contract (e.g., SaaS Agreement, Service Agreement)",
@@ -99,8 +93,51 @@ app.post('/api/analyze-contract', upload.single('pdf'), async (req, res) => {
         }
         ]
     }
-    ]
+    ],
+    "criticalClauses": {
+        "indemnification": {
+            "present": boolean,
+            "title": "clause title",
+            "summary": "brief summary",
+            "location": "section number or page",
+            "potentialIssues": [
+            {
+                "severity": "high|medium|low",
+                "description": "description of the potential issue",
+                "recommendation": "recommended action or improvement"
+            }
+            ]
+        },
+        "termination": {
+            "present": boolean,
+            "title": "clause title",
+            "summary": "brief summary",
+            "location": "section number or page",
+            "potentialIssues": [
+            {
+                "severity": "high|medium|low",
+                "description": "description of the potential issue",
+                "recommendation": "recommended action or improvement"
+            }
+            ]
+        },
+        "liability": {
+            "present": boolean,
+            "title": "clause title",
+            "summary": "brief summary",
+            "location": "section number or page",
+            "potentialIssues": [
+            {
+                "severity": "high|medium|low",
+                "description": "description of the potential issue",
+                "recommendation": "recommended action or improvement"
+            }
+            ]
+        }
+    }
 }
+
+Pay special attention to Indemnification, Termination, and Liability clauses. These MUST be included in the analysis if they are present in the contract.
 
 Contract text:
 ${pdfData}`

@@ -15,13 +15,15 @@ import {
   IconButton,
   List,
   ListItem,
-  ListItemText
+  ListItemText,
+  Divider
 } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import InfoIcon from '@mui/icons-material/Info';
+import StarIcon from '@mui/icons-material/Star';
 
 const IssueSeverityIcon = ({ severity }) => {
   switch (severity.toLowerCase()) {
@@ -39,6 +41,7 @@ const IssueSeverityIcon = ({ severity }) => {
 const ClauseRow = ({ clause, onClauseClick }) => {
   const [open, setOpen] = useState(false);
   const hasIssues = clause.potentialIssues && clause.potentialIssues.length > 0;
+  const isCritical = clause.isCritical;
 
   return (
     <>
@@ -53,7 +56,14 @@ const ClauseRow = ({ clause, onClauseClick }) => {
               {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
             </IconButton>
           )}
-          {clause.type}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {isCritical && (
+              <StarIcon color="primary" fontSize="small" />
+            )}
+            <Typography variant="body1">
+              {clause.type}
+            </Typography>
+          </Box>
         </TableCell>
         <TableCell>
           <Link
@@ -80,8 +90,21 @@ const ClauseRow = ({ clause, onClauseClick }) => {
               sx={{ ml: 1 }}
             />
           )}
+          {isCritical && (
+            <Chip
+              size="small"
+              label="Critical"
+              color="primary"
+              variant="outlined"
+              sx={{ ml: 1 }}
+            />
+          )}
         </TableCell>
-        <TableCell>{clause.summary}</TableCell>
+        <TableCell>
+          <Typography variant="body1">
+            {clause.summary}
+          </Typography>
+        </TableCell>
         <TableCell>{clause.location}</TableCell>
       </TableRow>
       {hasIssues && (
@@ -130,6 +153,10 @@ const ClausesTable = ({ clauses, onClauseClick }) => {
     return null;
   }
 
+  // Separate critical and non-critical clauses
+  const criticalClauses = clauses.filter(clause => clause.isCritical);
+  const regularClauses = clauses.filter(clause => !clause.isCritical);
+
   return (
     <TableContainer component={Paper}>
       <Table>
@@ -142,8 +169,23 @@ const ClausesTable = ({ clauses, onClauseClick }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {clauses.map((clause, index) => (
-            <ClauseRow key={index} clause={clause} onClauseClick={onClauseClick} />
+          {/* Critical clauses */}
+          {criticalClauses.map((clause, index) => (
+            <ClauseRow key={`critical-${index}`} clause={clause} onClauseClick={onClauseClick} />
+          ))}
+          
+          {/* Divider if there are both critical and regular clauses */}
+          {criticalClauses.length > 0 && regularClauses.length > 0 && (
+            <TableRow>
+              <TableCell colSpan={4} sx={{ p: 0 }}>
+                <Divider />
+              </TableCell>
+            </TableRow>
+          )}
+
+          {/* Regular clauses */}
+          {regularClauses.map((clause, index) => (
+            <ClauseRow key={`regular-${index}`} clause={clause} onClauseClick={onClauseClick} />
           ))}
         </TableBody>
       </Table>

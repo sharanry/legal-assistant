@@ -7,12 +7,14 @@ import {
   TextField,
   Tooltip,
   Grid,
+  Chip,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import WarningIcon from '@mui/icons-material/Warning';
 
-const ContractHeader = ({ metadata, contractName, onRename }) => {
+const ContractHeader = ({ metadata, contractName, onRename, criticalClauses }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(contractName);
 
@@ -24,6 +26,26 @@ const ContractHeader = ({ metadata, contractName, onRename }) => {
   const handleCancel = () => {
     setNewName(contractName);
     setIsEditing(false);
+  };
+
+  const renderClauseStatus = (clause, type) => {
+    if (!clause) return null;
+    
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+        <Chip
+          label={type}
+          color={clause.present ? "success" : "error"}
+          size="small"
+          icon={!clause.present ? <WarningIcon /> : undefined}
+        />
+        {clause.present && (
+          <Typography variant="body2" color="text.secondary">
+            {clause.summary}
+          </Typography>
+        )}
+      </Box>
+    );
   };
 
   return (
