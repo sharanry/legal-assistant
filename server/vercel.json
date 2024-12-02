@@ -8,8 +8,7 @@
   ],
   "functions": {
     "index.js": {
-      "maxDuration": 60,
-      "use": "@vercel/node"
+      "maxDuration": 60
     }
   }
 }
