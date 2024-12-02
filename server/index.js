@@ -21,15 +21,7 @@ app.use(express.json());
 // whitelist frontend origin
 const whitelist = ['http://localhost:3000', "https://legal-assistant-bay.vercel.app"];
 const corsOptions = {
-  origin: function (origin, callback) {
-    logger.log(`Origin: ${origin}`);
-    callback(null, true); // temp hack to allow all origins
-    // if (whitelist.indexOf(origin) !== -1) {
-    //   callback(null, true);
-    // } else {
-    //   callback(new Error('Not allowed by CORS'));
-    // }
-  }
+  origin: '*',
 };
 app.use(cors(corsOptions));
 
