@@ -22,6 +22,7 @@ app.use(express.json());
 const whitelist = ['http://localhost:3000', "https://legal-assistant-bay.vercel.app"];
 const corsOptions = {
   origin: '*',
+  credentials: true,
 };
 app.use(cors(corsOptions));
 
