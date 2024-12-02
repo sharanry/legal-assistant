@@ -18,8 +18,8 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import axios from 'axios';
 import logger from './utils/logger';
 
-// const BACKEND_BASE_URL = "https://legal-assistant-tau.vercel.app"
-const BACKEND_BASE_URL = "http://localhost:5001"
+const BACKEND_BASE_URL = "https://legal-assistant-tau.vercel.app"
+// const BACKEND_BASE_URL = "http://localhost:5001"
 function App() {
   const [loading, setLoading] = useState(false);
   const [showUpload, setShowUpload] = useState(true);
