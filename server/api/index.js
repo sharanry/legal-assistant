@@ -5,10 +5,54 @@ import OpenAI from 'openai';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import logger from '../utils/logger.js';
-import { JsonOutputParser } from '@langchain/core/output_parsers';
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+import { StructuredOutputParser } from "langchain/output_parsers";
+import { z } from "zod";
 dotenv.config();
 
+// Define the schema for potential issues
+const potentialIssueSchema = z.object({
+  severity: z.enum(["high", "medium", "low"]),
+  description: z.string(),
+  recommendation: z.string()
+});
+
+// Define the schema for a clause
+const clauseSchema = z.object({
+  title: z.string(),
+  summary: z.string(),
+  location: z.string(),
+  potentialIssues: z.array(potentialIssueSchema)
+});
+
+// Define the schema for critical clauses
+const criticalClauseSchema = clauseSchema.extend({
+  present: z.boolean()
+});
+
+// Define the complete output schema
+const contractAnalysisSchema = z.object({
+  metadata: z.object({
+    contractType: z.string(),
+    parties: z.object({
+      provider: z.string(),
+      client: z.string()
+    }),
+    effectiveDate: z.string(),
+    contractValue: z.string()
+  }),
+  criticalClauses: z.object({
+    indemnification: criticalClauseSchema,
+    termination: criticalClauseSchema,
+    liability: criticalClauseSchema
+  }),
+  clauses: z.array(clauseSchema.extend({
+    type: z.string()
+  }))
+});
+
+// Create the parser
+const parser = StructuredOutputParser.fromZodSchema(contractAnalysisSchema);
 
 const app = express();
 const upload = multer({ 
@@ -131,79 +175,17 @@ async function processContract(jobId, file) {
       throw new Error('No text extracted from PDF');
     }
 
-    const prompt = `Analyze this contract and extract metadata, clauses, and potential issues. Make sure to ALWAYS include Indemnification, Termination, and Liability clauses if they are present in the contract, even if there are other clauses that might seem more important. Format the response as JSON with the following structure:
-{
-    "metadata": {
-    "contractType": "type of contract (e.g., SaaS Agreement, Service Agreement)",
-    "parties": {
-        "provider": "name of the service provider/vendor",
-        "client": "name of the client/customer"
-    },
-    "effectiveDate": "contract effective date if mentioned",
-    "contractValue": "contract value if mentioned"
-    },
-    "criticalClauses": {
-        "indemnification": {
-            "present": boolean,
-            "title": "clause title",
-            "summary": "brief summary",
-            "location": "section number or page",
-            "potentialIssues": [
-            {
-                "severity": "high|medium|low",
-                "description": "description of the potential issue",
-                "recommendation": "recommended action or improvement"
-            }
-            ]
-        },
-        "termination": {
-            "present": boolean,
-            "title": "clause title",
-            "summary": "brief summary",
-            "location": "section number or page",
-            "potentialIssues": [
-            {
-                "severity": "high|medium|low",
-                "description": "description of the potential issue",
-                "recommendation": "recommended action or improvement"
-            }
-            ]
-        },
-        "liability": {
-            "present": boolean,
-            "title": "clause title",
-            "summary": "brief summary",
-            "location": "section number or page",
-            "potentialIssues": [
-            {
-                "severity": "high|medium|low",
-                "description": "description of the potential issue",
-                "recommendation": "recommended action or improvement"
-            }
-            ]
-        }
-    },
-    "clauses": [
-      {
-          "type": "clause type",
-          "title": "clause title",
-          "summary": "brief summary",
-          "location": "section number or page",
-          "potentialIssues": [
-          {
-              "severity": "high|medium|low",
-              "description": "description of the potential issue",
-              "recommendation": "recommended action or improvement"
-          }
-          ]
-      }
-    ]
-}
+    // Get the format instructions
+    const formatInstructions = parser.getFormatInstructions();
+
+    const prompt = `Analyze this contract and extract metadata, clauses, and potential issues. Make sure to ALWAYS include Indemnification, Termination, and Liability clauses if they are present in the contract, even if there are other clauses that might seem more important.
+
+${formatInstructions}
 
 Pay special attention to Indemnification, Termination, and Liability clauses. These MUST be included in the analysis if they are present in the contract.
 
 Contract text:
-${pdfData}`; // existing prompt
+${pdfData}`;
 
     logger.log('Sending request to OpenRouter API');
     const response = await openai.chat.completions.create({
@@ -214,10 +196,9 @@ ${pdfData}`; // existing prompt
       }]
     });
 
-    // Parse the JSON response
-    const parser = new JsonOutputParser();
+    // Parse and validate the response
     const analysis = await parser.parse(response.choices[0].message.content);
-
+    
     logger.log(`Successfully analyzed contract with ${analysis.clauses.length} clauses`);
     
     // Update job with success result
@@ -230,11 +211,16 @@ ${pdfData}`; // existing prompt
 
   } catch (error) {
     logger.error('Error processing contract', error);
+    // Provide more detailed error message for parsing failures
+    const errorMessage = error.name === 'ZodError' 
+      ? `Invalid response format: ${error.errors.map(e => e.message).join(', ')}`
+      : error.message;
+      
     jobs.set(jobId, {
       status: 'error',
       filePath: file.path,
       result: null,
-      error: error.message
+      error: errorMessage
     });
   }
 }
