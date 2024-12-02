@@ -18,8 +18,8 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import axios from 'axios';
 import logger from './utils/logger';
 
-const BACKEND_BASE_URL = "https://legal-assistant-tau.vercel.app"
-// const BACKEND_BASE_URL = "http://localhost:5001"
+// const BACKEND_BASE_URL = "https://legal-assistant-tau.vercel.app"
+const BACKEND_BASE_URL = "http://localhost:5001"
 function App() {
   const [loading, setLoading] = useState(false);
   const [showUpload, setShowUpload] = useState(true);
@@ -44,52 +44,87 @@ function App() {
 
     try {
       logger.log('Sending file to server for analysis');
-      const response = await axios.post(`${BACKEND_BASE_URL}/api/analyze-contract`, formData, {
+      const { data: { jobId } } = await axios.post(`${BACKEND_BASE_URL}/api/analyze-contract`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
         withCredentials: true,
       });
       
-      const contractData = {
-        id: contractId || Date.now().toString(),
+      // Start polling for results
+      const pollInterval = 2000; // Poll every 2 seconds
+      const maxAttempts = 60; // Maximum 2 minutes of polling
+      let attempts = 0;
+
+      const pollResults = async () => {
+        try {
+          const { data: jobStatus } = await axios.get(`${BACKEND_BASE_URL}/api/job-status/${jobId}`);
+          
+          if (jobStatus.status === 'completed') {
+            const contractData = {
+              id: contractId || Date.now().toString(),
+              name: file.name,
+              timestamp: new Date().toISOString(),
+              file: file,
+              status: 'success',
+              ...jobStatus.result
+            };
+            
+            setContracts(prev => [
+              ...prev.filter(c => c.id !== contractData.id),
+              contractData
+            ]);
+            setSelectedContract(contractData);
+            setShowUpload(false);
+            setProcessingError(prev => ({ ...prev, [contractData.id]: null }));
+            setLoading(false);
+            return;
+          }
+          
+          if (jobStatus.status === 'error') {
+            throw new Error(jobStatus.error || 'Failed to analyze contract');
+          }
+          
+          // Continue polling if still processing
+          attempts++;
+          if (attempts < maxAttempts) {
+            setTimeout(pollResults, pollInterval);
+          } else {
+            throw new Error('Contract analysis timed out');
+          }
+        } catch (error) {
+          handleAnalysisError(error, file, contractId);
+        }
+      };
+
+      // Start polling
+      setTimeout(pollResults, pollInterval);
+      
+    } catch (error) {
+      handleAnalysisError(error, file, contractId);
+    }
+  };
+
+  const handleAnalysisError = (error, file, contractId) => {
+    logger.error('Error analyzing contract', error);
+    const errorMessage = error.response?.data?.error || error.message || 'Failed to analyze contract';
+    
+    if (contractId) {
+      setProcessingError(prev => ({ ...prev, [contractId]: errorMessage }));
+    } else {
+      const failedContract = {
+        id: Date.now().toString(),
         name: file.name,
         timestamp: new Date().toISOString(),
         file: file,
-        status: 'success',
-        ...response.data
+        status: 'error',
+        error: errorMessage
       };
-      
-      setContracts(prev => [
-        ...prev.filter(c => c.id !== contractData.id),
-        contractData
-      ]);
-      setSelectedContract(contractData);
-      setShowUpload(false);
-      setProcessingError(prev => ({ ...prev, [contractData.id]: null }));
-      
-    } catch (error) {
-      logger.error('Error analyzing contract', error);
-      const errorMessage = error.response?.data?.error || 'Failed to analyze contract';
-      
-      if (contractId) {
-        setProcessingError(prev => ({ ...prev, [contractId]: errorMessage }));
-      } else {
-        const failedContract = {
-          id: Date.now().toString(),
-          name: file.name,
-          timestamp: new Date().toISOString(),
-          file: file,
-          status: 'error',
-          error: errorMessage
-        };
-        setContracts(prev => [failedContract, ...prev]);
-      }
-      
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
+      setContracts(prev => [failedContract, ...prev]);
     }
+    
+    setError(errorMessage);
+    setLoading(false);
   };
 
   const handleFileUpload = async (file) => {
