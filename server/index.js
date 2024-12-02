@@ -19,7 +19,7 @@ app.use(cors());
 app.use(express.json());
 
 // whitelist frontend origin
-const whitelist = ['http://localhost:3000', process.env.FRONTEND_BASE_URL];
+const whitelist = ['http://localhost:3000', "https://legal-assistant-bay.vercel.app"];
 const corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {
