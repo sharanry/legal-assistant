@@ -22,6 +22,7 @@ app.use(express.json());
 const whitelist = ['http://localhost:3000', "https://legal-assistant-bay.vercel.app"];
 const corsOptions = {
   origin: function (origin, callback) {
+    logger.log(`Origin: ${origin}`);
     if (whitelist.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -29,6 +30,8 @@ const corsOptions = {
     }
   }
 };
+app.use(cors(corsOptions));
+
 
 // Request logging middleware
 app.use((req, res, next) => {
