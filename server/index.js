@@ -23,11 +23,12 @@ const whitelist = ['http://localhost:3000', "https://legal-assistant-bay.vercel.
 const corsOptions = {
   origin: function (origin, callback) {
     logger.log(`Origin: ${origin}`);
-    if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    callback(null, true); // temp hack to allow all origins
+    // if (whitelist.indexOf(origin) !== -1) {
+    //   callback(null, true);
+    // } else {
+    //   callback(new Error('Not allowed by CORS'));
+    // }
   }
 };
 app.use(cors(corsOptions));
