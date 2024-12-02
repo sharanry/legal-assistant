@@ -4,7 +4,7 @@ import multer from 'multer';
 import OpenAI from 'openai';
 import fs from 'fs';
 import dotenv from 'dotenv';
-import logger from './utils/logger.js';
+import logger from '../utils/logger.js';
 import { JsonOutputParser } from '@langchain/core/output_parsers';
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 dotenv.config();
