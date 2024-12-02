@@ -18,7 +18,7 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import axios from 'axios';
 import logger from './utils/logger';
 
-const BACKEND_BASE_URL = process.env.BACKEND_BASE_URL || 'http://localhost:5001';
+const BACKEND_BASE_URL = "https://legal-assistant-tau.vercel.app/"
 
 function App() {
   const [loading, setLoading] = useState(false);
